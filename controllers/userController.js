@@ -51,9 +51,10 @@ export const register = async (req, res) => {
 
 // user Login controller (method : post)
 
-export const login = async (req, res) => {
+export const sendOTPLoginVerification = async (req, res) => {
   try {
     const { email, phone, password } = req.body;
+    console.log( req.body)
 
     if (!email && !phone) {
       return res
@@ -65,6 +66,8 @@ export const login = async (req, res) => {
     const user = await User.findOne({
       $or: [{ email: email }, { phone: phone }],
     });
+  
+   
     
 
     if (!user) {
@@ -87,15 +90,32 @@ export const login = async (req, res) => {
         .json({ status: "error", message: "Password incorrect" });
     }
 
+    let otp=`${Math.floor(10000+Math.random() * 9000)}`;
 
-   
+    const mailOptions = {
+      from:process.env.EMAIL_USER,
+      to: user.email,
+      subject:'Verify your email',
+      text:`Your OTP is:${otp}`
+  };  
+ 
+
+  await emailTransporter.sendMail(mailOptions) ;
+
+  return res.status(200).json({
+    status: "success",
+    message: "Login successful. Email notification sent.",
+  });
+
   } catch (error) {
     console.error(error);
     res.status(500).json({ status: "error", message: "Server error" });
   }
 };
 
-export default { register, login };
+
+
+export default { register, sendOTPLoginVerification };
 
 
 
