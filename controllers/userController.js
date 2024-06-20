@@ -2,19 +2,18 @@ import User from "../models/user.js";
 import { validateRegister } from "../models/ValidationShema.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import { twilioClient, emailTransporter } from '../config/otpConfig.js';
-import otpGenerator from 'otp-generator';
-import { parsePhoneNumberFromString } from 'libphonenumber-js';
+import { twilioClient, emailTransporter } from "../config/otpConfig.js";
+import otpGenerator from "otp-generator";
+import { parsePhoneNumberFromString } from "libphonenumber-js";
+import otpVerification from "../models/otpModel.js";
 
 // Temporary OTP store
 const otpStore = {};
 
-
-
 // user registration controller (method : post)
 
 export const register = async (req, res) => {
-  console.log(req.body)
+  console.log(req.body);
   try {
     // Validate the request body
     const { error } = validateRegister(req.body);
@@ -48,13 +47,12 @@ export const register = async (req, res) => {
   }
 };
 
-
 // user Login controller (method : post)
 
 export const sendOTPLoginVerification = async (req, res) => {
   try {
     const { email, phone, password } = req.body;
-    console.log( req.body)
+    console.log(req.body);
 
     if (!email && !phone) {
       return res
@@ -66,9 +64,6 @@ export const sendOTPLoginVerification = async (req, res) => {
     const user = await User.findOne({
       $or: [{ email: email }, { phone: phone }],
     });
-  
-   
-    
 
     if (!user) {
       return res
@@ -90,65 +85,86 @@ export const sendOTPLoginVerification = async (req, res) => {
         .json({ status: "error", message: "Password incorrect" });
     }
 
-    let otp=`${Math.floor(10000+Math.random() * 9000)}`;
+    let otp = `${Math.floor(10000 + Math.random() * 9000)}`;
 
     const mailOptions = {
-      from:process.env.EMAIL_USER,
+      from: process.env.EMAIL_USER,
       to: user.email,
-      subject:'Verify your email',
-      text:`Your OTP is:${otp}`
-  };  
- 
+      subject: "Verify your email",
+      text: `Your OTP is:${otp}`,
+    };
 
-  await emailTransporter.sendMail(mailOptions) ;
+    const newOtpVerification = await new otpVerification({
+      email: user.email,
+      otp: otp,
+    });
+    await newOtpVerification.save();
 
-  return res.status(200).json({
-    status: "success",
-    message: "Login successful. Email notification sent.",
-  });
+    await emailTransporter.sendMail(mailOptions);
 
+    return res.status(200).json({
+      status: "success",
+      message: "Login successful. Email notification sent.",
+    });
   } catch (error) {
     console.error(error);
     res.status(500).json({ status: "error", message: "Server error" });
   }
 };
 
+export const OtpVerification = async (req, res) => {
+  try {
+    const otp = req.body.otp;
+    const userVerification = await otpVerification.findOne({ otp: otp });
 
+    if (!userVerification) {
+      return res
+        .status(400)
+        .json({
+          status: "error",
+          message: "User verification failed or Otp expired ",
+        });
+    }
+    if (userVerification) {
+      const user = await User.findOne({ email: userVerification.email });
+      console.log(user, "gggg");
 
-export default { register, sendOTPLoginVerification };
+      const generateAccessToken = (user) => {
+        return jwt.sign(
+          { id: user.id, username: user.name },
+          process.env.USER_ACCESS_TOKEN_SECRET,
+          { expiresIn: "15m" }
+        );
+      };
 
+      // Function to generate refresh token
+      const generateRefreshToken = (user) => {
+        return jwt.sign(
+          { id: user.id, username: user.name },
+          process.env.REFRESH_TOKEN_SECRET,
+          { expiresIn: "7d" }
+        );
+      };
 
+      // Generate JWT access and refresh token
+      const accessToken = generateAccessToken(user);
+      const refreshToken = generateRefreshToken(user);
+      let refreshTokens = [];
 
-// const generateAccessToken = (user) => {
-//   return jwt.sign(
-//     { id: user.id, username: user.name },
-//     process.env.USER_ACCESS_TOKEN_SECRET,
-//     { expiresIn: "15m" }
-//   );
-// };
+      // Store the refresh token securely in the empty array
+      refreshTokens.push(refreshToken);
 
-// // Function to generate refresh token
-// const generateRefreshToken = (user) => {
-//   return jwt.sign(
-//     { id: user.id, username: user.name },
-//     process.env.REFRESH_TOKEN_SECRET,
-//     { expiresIn: '7d'  } 
-//   );
-// };
+      // user information including the refresh and access tokens
+      res.status(200).json({
+        status: "success",
+        message: "Login successful",
+        data: { accessToken, refreshToken, username: user.name, id: user.id },
+      });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ status: "error", message: "Server error" });
+  }
+};
 
-// // Generate JWT access and refresh token 
-// const accessToken = generateAccessToken(user);
-// const refreshToken = generateRefreshToken(user);
-// let refreshTokens = [];
-
-// // Store the refresh token securely in the empty array
-// refreshTokens.push(refreshToken);
-
-// // user information including the refresh and access tokens
-// res.status(200).json({
-//   status: "success",
-//   message: "Login successful",
-//   data: { accessToken, refreshToken, username: user.name, id: user.id },
-// });
-
-
+export default { register, sendOTPLoginVerification, OtpVerification };

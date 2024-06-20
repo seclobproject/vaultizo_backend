@@ -2,7 +2,14 @@ import mongoose from "mongoose"
 
 const userOTPVerificationSchema = new mongoose.Schema({
         email:{
-            type:String
+            type: String,
+            unique: true,
+            sparse: true,
+        },
+        phone :{
+            type: String,
+            unique: true,
+            sparse: true,
         },
         otp:{
             type:String
@@ -17,4 +24,5 @@ const userOTPVerificationSchema = new mongoose.Schema({
 
 userOTPVerificationSchema.index({createdAt:1},{expireAfterSeconds:60})
 
-module.exports=mongoose.model('userOTPVerification',userOTPVerificationSchema)
+const otpVerification = mongoose.model('userOTPVerification',userOTPVerificationSchema)
+export default otpVerification ;
