@@ -6,6 +6,9 @@ userRoute
 .post('/register',userController.register)
 .post('/login',userController.sendOTPLoginVerification)
 .post('/login-verifed',userController.OtpVerification)
+.post('/newPassOtp',userController.forgotPasswordOtp)
+.post('/verifiedOtp' , userController.OTPVerification)
+
 
 
 export default userRoute

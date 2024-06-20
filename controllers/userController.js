@@ -3,12 +3,9 @@ import { validateRegister } from "../models/ValidationShema.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { twilioClient, emailTransporter } from "../config/otpConfig.js";
-import otpGenerator from "otp-generator";
 import { parsePhoneNumberFromString } from "libphonenumber-js";
 import otpVerification from "../models/otpModel.js";
 
-// Temporary OTP store
-const otpStore = {};
 
 // user registration controller (method : post)
 
@@ -118,16 +115,13 @@ export const OtpVerification = async (req, res) => {
     const userVerification = await otpVerification.findOne({ otp: otp });
 
     if (!userVerification) {
-      return res
-        .status(400)
-        .json({
-          status: "error",
-          message: "User verification failed or Otp expired ",
-        });
+      return res.status(400).json({
+        status: "error",
+        message: "User verification failed or Otp expired ",
+      });
     }
     if (userVerification) {
       const user = await User.findOne({ email: userVerification.email });
-      console.log(user, "gggg");
 
       const generateAccessToken = (user) => {
         return jwt.sign(
@@ -167,4 +161,98 @@ export const OtpVerification = async (req, res) => {
   }
 };
 
-export default { register, sendOTPLoginVerification, OtpVerification };
+export const forgotPasswordOtp = async (req, res) => {
+  try {
+    const { email, phone } = req.body;
+
+    if (!email && !phone) {
+      return res
+        .status(400)
+        .json({ status: "error", message: "Email or phone must be provided" });
+    }
+
+    // Find the user by email or phone
+    const user = await User.findOne({
+      $or: [{ email: email }, { phone: phone }],
+    });
+
+    if (!user) {
+      return res
+        .status(404)
+        .json({ status: "error", message: "User not found" });
+    }
+
+    let otp = `${Math.floor(10000 + Math.random() * 9000)}`;
+
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: user.email,
+      subject: "Verify your email",
+      text: `OTP for  Change password : ${otp}`,
+    };
+
+    const newOtpVerification = await new otpVerification({
+      email: user.email,
+      otp: otp,
+    });
+    await newOtpVerification.save();
+
+    await emailTransporter.sendMail(mailOptions);
+
+    return res.status(200).json({
+      status: "success",
+      message: "Otp sent successfully",
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ status: "error", message: "Server error" });
+  }
+};
+
+export const OTPVerification = async (req, res) => {
+  try {
+    const {otp} = req.body
+    const otpMatch = await otpVerification.findOne({otp : otp })
+
+    if(!otpMatch){
+      return res
+      .status(404)
+      .json({ status: "error", message: "Otp expired or invalid otp" });
+    }
+    
+    // deleting the otp to prevent the reuse
+    await otpVerification.deleteOne({ otp: otp });
+
+    if(otpMatch){
+      return res
+      .status(200)
+      .json({ status: "success", message: "Sucessfully varified otp" });
+    }
+
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ status: "error", message: "Server error" });
+  }
+};
+
+export const ChangePassword = async (req,res) => {
+  try {
+
+    const {password} = req.body ; 
+
+    const hashPassword = await bcrypt.hash(password,10)
+    
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ status: "error", message: "Server error" });
+  }
+}
+
+export default {
+  register,
+  sendOTPLoginVerification,
+  OtpVerification,
+  forgotPasswordOtp,
+  OTPVerification
+};
