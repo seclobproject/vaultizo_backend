@@ -252,6 +252,70 @@ export const ChangePassword = async (req, res) => {
   }
 };
 
+export const AddPersonalDetails = async (req, res) => {
+  try {
+    const userId = req.userId;
+
+    const {
+      name,
+      nickname,
+      dateOfBirth,
+      gender,
+      maritalStatus,
+      idCardNo,
+      email,
+      mobileNumber,
+      country,
+      address,
+      bankName,
+      branchName,
+      accountNo,
+      vaultizoUserId,
+      accountCreationDate,
+      vaultizoReferralCode,
+    } = req.body;
+    const personaldetail = await User.find({_id : userId})
+    const data = personaldetail[0].personalDetails
+    if(data.length < 1){
+    await User.findOneAndUpdate(
+      { _id: userId },
+      {
+        $push: {
+          personalDetails: {
+            name: name,
+            nickname: nickname,
+            dateOfBirth: dateOfBirth,
+            gender: gender,
+            maritalStatus: maritalStatus,
+            idCardNo: idCardNo,
+            email: email,
+            mobileNumber: mobileNumber,
+            country: country,
+            address: address,
+            bankName: bankName,
+            branchName: branchName,
+            accountNo: accountNo,
+            vaultizoUserId: vaultizoUserId,
+            accountCreationDate: accountCreationDate,
+            vaultizoReferralCode: vaultizoReferralCode,
+          },
+        },
+      }
+    );
+    res
+      .status(200)
+      .json({ status: "success", message: "Successfully added the personal details" });
+  }res
+      .status(400)
+      .json({ status: "faliure", message: "already addaed the personal details" });
+
+    
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ status: "error", message: "Server error" });
+  }
+};
+
 export default {
   register,
   sendOTPLoginVerification,
@@ -259,4 +323,5 @@ export default {
   forgotPasswordOtp,
   OTPVerification,
   ChangePassword,
+  AddPersonalDetails,
 };

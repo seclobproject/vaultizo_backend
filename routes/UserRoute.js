@@ -9,6 +9,7 @@ userRoute
 .post('/newPassOtp',verifyToken,userController.forgotPasswordOtp)
 .post('/verifiedOtp' ,verifyToken,userController.OTPVerification)
 .patch('/change-password',verifyToken, userController.ChangePassword)
+.post ('/addDetails',verifyToken,userController.AddPersonalDetails)
 
 
 
