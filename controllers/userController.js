@@ -6,7 +6,6 @@ import { twilioClient, emailTransporter } from "../config/otpConfig.js";
 import { parsePhoneNumberFromString } from "libphonenumber-js";
 import otpVerification from "../models/otpModel.js";
 
-
 // user registration controller (method : post)
 
 export const register = async (req, res) => {
@@ -127,7 +126,7 @@ export const OtpVerification = async (req, res) => {
         return jwt.sign(
           { id: user.id, username: user.name },
           process.env.USER_ACCESS_TOKEN_SECRET,
-          { expiresIn: "15m" }
+          { expiresIn: "1d" }
         );
       };
 
@@ -211,48 +210,53 @@ export const forgotPasswordOtp = async (req, res) => {
 
 export const OTPVerification = async (req, res) => {
   try {
-    const {otp} = req.body
-    const otpMatch = await otpVerification.findOne({otp : otp })
+    const { otp } = req.body;
+    const otpMatch = await otpVerification.findOne({ otp: otp });
 
-    if(!otpMatch){
+    if (!otpMatch) {
       return res
-      .status(404)
-      .json({ status: "error", message: "Otp expired or invalid otp" });
+        .status(404)
+        .json({ status: "error", message: "Otp expired or invalid otp" });
     }
-    
+
     // deleting the otp to prevent the reuse
     await otpVerification.deleteOne({ otp: otp });
 
-    if(otpMatch){
+    if (otpMatch) {
       return res
-      .status(200)
-      .json({ status: "success", message: "Sucessfully varified otp" });
+        .status(200)
+        .json({ status: "success", message: "Sucessfully varified otp" });
     }
-
-
   } catch (error) {
     console.error(error);
     res.status(500).json({ status: "error", message: "Server error" });
   }
 };
 
-export const ChangePassword = async (req,res) => {
+export const ChangePassword = async (req, res) => {
   try {
+    const { password } = req.body;
+    const userId = req.userId; // taking the user id from the authentication sections payload
 
-    const {password} = req.body ; 
+    const hashPassword = await bcrypt.hash(password, 10);
 
-    const hashPassword = await bcrypt.hash(password,10)
-    
+    const changePassword = await User.findByIdAndUpdate(userId, {
+      password: hashPassword,
+    });
+    res
+      .status(200)
+      .json({ status: "success", message: "Password changed successfully" });
   } catch (error) {
     console.error(error);
     res.status(500).json({ status: "error", message: "Server error" });
   }
-}
+};
 
 export default {
   register,
   sendOTPLoginVerification,
   OtpVerification,
   forgotPasswordOtp,
-  OTPVerification
+  OTPVerification,
+  ChangePassword,
 };

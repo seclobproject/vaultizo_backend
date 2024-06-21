@@ -1,8 +1,12 @@
-import jwt from 'jsonwebtoken'
-// Middleware to verify JWT token
-module.exports = function verifyToken(req, res, next) {
-  const token = req.headers["authorization"].split(" ")[1];
+import jwt from 'jsonwebtoken';
 
+const verifyToken = (req, res, next) => {
+  const authHeader = req.headers["authorization"];
+  if (!authHeader) {
+    return res.status(403).json({ error: "No token provided" });
+  }
+
+  const token = authHeader.split(" ")[1];
   if (!token) {
     return res.status(403).json({ error: "No token provided" });
   }
@@ -13,6 +17,9 @@ module.exports = function verifyToken(req, res, next) {
     }
 
     req.name = decoded.name;
+    req.userId = decoded.id;
     next();
   });
 };
+
+export default verifyToken;
