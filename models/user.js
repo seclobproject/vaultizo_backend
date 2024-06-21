@@ -25,6 +25,94 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    personalDetails : [{
+      name: {
+        type: String,
+        required: true,
+        minlength: 3,
+        maxlength: 50
+    },
+    nickname: {
+        type: String,
+        minlength: 2,
+        maxlength: 50
+    },
+    dateOfBirth: {
+        type: Date,
+        required: true
+    },
+    gender: {
+        type: String,
+        enum: ['Male', 'Female', 'Other'],
+        required: true
+    },
+    maritalStatus: {
+        type: String,
+        enum: ['Single', 'Married', 'Divorced', 'Widowed'],
+        required: true
+    },
+    idCardNo: {
+      type: String,
+      required: true 
+  },
+    email: {
+        type: String,
+        required: true,
+        minlength: 5,
+        maxlength: 255,
+       
+    },
+    mobileNumber: {
+        type: String,
+        required: true,
+        minlength: 10,
+        maxlength: 15
+    },
+    country: {
+        type: String,
+        required: true,
+        minlength: 2,
+        maxlength: 50
+    },
+    address: {
+        type: String,
+        required: true,
+        minlength: 5,
+        maxlength: 50
+    },
+    bankName: {
+        type: String,
+        required: true,
+        minlength: 3,
+        maxlength: 100
+    },
+    branchName: {
+        type: String,
+        required: true,
+        minlength: 3,
+        maxlength: 100
+    },
+    accountNo: {
+        type: String,
+        required: true,
+        minlength: 5,
+        maxlength: 50,
+        
+    },
+    vaultizoUserId: {
+        type: String,
+        required: true,
+    },
+    accountCreationDate: {
+        type: Date,
+        default: Date.now
+    },
+    vaultizoReferralCode: {
+        type: String,
+        required: true,
+    }
+  }]
+        
   },
   {
     timestamps: true,
