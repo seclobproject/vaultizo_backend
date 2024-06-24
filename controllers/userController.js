@@ -138,7 +138,7 @@ export const OtpVerification = async (req, res) => {
         },
         process.env.USER_ACCESS_TOKEN_SECRET,
         {
-          expiresIn: "10m",
+          expiresIn: "1d",
         }
       );
       // Generating refresh token
