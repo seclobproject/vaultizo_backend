@@ -144,7 +144,7 @@ export const OtpVerification = async (req, res) => {
       // Generating refresh token
       const refreshToken = jwt.sign(
         {
-          username: user.username,
+          email: user.email,
         },
         process.env.REFRESH_TOKEN_SECRET,
         { expiresIn: "1d" }
@@ -171,7 +171,7 @@ export const OtpVerification = async (req, res) => {
           if (err) {
             return res.status(406).json({ message: "Unauthorized" });
           }
-          const user = await User.findOne({ username: decode.name });
+          const user = await User.findOne({ email: decode.email });
 
           if (!user) {
             return res.status(400).json({
