@@ -7,12 +7,12 @@ const userOTPVerificationSchema = new mongoose.Schema({
        },
         email:{
             type: String,
-            unique: true,
+            unique: false,
             sparse: true,
         },
         phone :{
             type: String,
-            unique: true,
+            unique: false,
             sparse: true,
         },
         otp:{

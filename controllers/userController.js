@@ -3,7 +3,6 @@ import { validateRegister } from "../models/ValidationShema.js";
 import bcrypt from "bcrypt";
 import jwt, { decode } from "jsonwebtoken";
 import { twilioClient, emailTransporter } from "../config/otpConfig.js";
-import { parsePhoneNumberFromString } from "libphonenumber-js";
 import otpVerification from "../models/otpModel.js";
 import axios from "axios";
 
@@ -293,11 +292,11 @@ export const OTPVerification = async (req, res) => {
     if (otpMatch) {
       return res
         .status(200)
-        .json({ status: "success", message: "Sucessfully varified otp" });
+        .json({ status: "success", message: "Sucessfully varified otp", data : otpMatch });
     }
   } catch (error) {
     console.error(error);
-    res.status(500).json({ status: "error", message: "Server error" });
+    res.status(500).json({ status: "error", message: "Server error"  });
   }
 };
 
