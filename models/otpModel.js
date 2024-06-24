@@ -1,6 +1,10 @@
 import mongoose from "mongoose"
 
 const userOTPVerificationSchema = new mongoose.Schema({
+        
+       userId: {
+        type: String,
+       },
         email:{
             type: String,
             unique: true,

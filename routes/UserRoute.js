@@ -10,6 +10,7 @@ userRoute
 .post('/verifiedOtp' ,verifyToken,userController.OTPVerification)
 .patch('/change-password',verifyToken, userController.ChangePassword)
 .post ('/addDetails',verifyToken,userController.AddPersonalDetails)
+.put ('/editDetails',verifyToken,userController.EditPersonalDetails)
 
 
 

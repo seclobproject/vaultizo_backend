@@ -127,7 +127,6 @@ export const sendOTPLoginVerification = async (req, res) => {
     res.status(500).json({ status: "error", message: "Server error" });
   }
 };
-
 export const OtpVerification = async (req, res) => {
   try {
     const otp = req.body.otp;
@@ -143,7 +142,6 @@ export const OtpVerification = async (req, res) => {
       }
 
       const user = await User.findOne({ email: userVerification.email });
-
       if (!user) {
         return res.status(400).json({
           status: "error",
@@ -154,8 +152,10 @@ export const OtpVerification = async (req, res) => {
 
       const accessToken = jwt.sign(
         {
-          username: user.name,
+          name: user.name,
           email: user.email,
+          id: user.id
+
         },
         process.env.USER_ACCESS_TOKEN_SECRET,
         {
@@ -165,7 +165,7 @@ export const OtpVerification = async (req, res) => {
       // Generating refresh token
       const refreshToken = jwt.sign(
         {
-          email: user.email,
+          username: user.username,
         },
         process.env.REFRESH_TOKEN_SECRET,
         { expiresIn: "1d" }
@@ -192,7 +192,7 @@ export const OtpVerification = async (req, res) => {
           if (err) {
             return res.status(406).json({ message: "Unauthorized" });
           }
-          const user = await User.findOne({ email: decode.email });
+          const user = await User.findOne({ username: decode.name });
 
           if (!user) {
             return res.status(400).json({
@@ -225,6 +225,8 @@ export const OtpVerification = async (req, res) => {
   }
 };
 
+
+
 export const forgotPasswordOtp = async (req, res) => {
   try {
     const { email, phone } = req.body;
@@ -256,6 +258,7 @@ export const forgotPasswordOtp = async (req, res) => {
     };
 
     const newOtpVerification = await new otpVerification({
+      userId : user._id ,
       email: user.email,
       otp: otp,
     });
@@ -301,7 +304,7 @@ export const OTPVerification = async (req, res) => {
 export const ChangePassword = async (req, res) => {
   try {
     const { password } = req.body;
-    const userId = req.userId; // taking the user id from the authentication sections payload
+    
 
     const hashPassword = await bcrypt.hash(password, 10);
 
@@ -319,7 +322,7 @@ export const ChangePassword = async (req, res) => {
 
 export const AddPersonalDetails = async (req, res) => {
   try {
-    const userId = req.userId;
+    const userId =  req.userId;
 
     const {
       name,
@@ -384,6 +387,71 @@ export const AddPersonalDetails = async (req, res) => {
   }
 };
 
+const EditPersonalDetails = async (req, res) => {
+  try {
+    const {
+      name,
+      nickname,
+      dateOfBirth,
+      gender,
+      maritalStatus,
+      idCardNo,
+      email,
+      mobileNumber,
+      country,
+      address,
+      bankName,
+      branchName,
+      accountNo,
+      vaultizoUserId,
+      accountCreationDate,
+      vaultizoReferralCode,
+      _id 
+    } = req.body;
+
+    const userId = req.userId;
+  
+
+    const user = await User.findOne({ _id: userId });
+    if (!user) {
+      return res.status(404).json({ status: "error", message: "User not found" });
+    }
+    console.log(user, 'User found');
+
+    const personalDetail = user.personalDetails.id(_id);
+    if (!personalDetail) {
+      return res.status(404).json({ status: "error", message: "Personal detail not found" });
+    }
+    console.log(personalDetail,'kkkkkkkkkkkk')
+
+    Object.assign(personalDetail, {
+      name,
+      nickname,
+      dateOfBirth,
+      gender,
+      maritalStatus,
+      idCardNo,
+      email,
+      mobileNumber,
+      country,
+      address,
+      bankName,
+      branchName,
+      accountNo,
+      vaultizoUserId,
+      accountCreationDate,
+      vaultizoReferralCode
+    });
+
+    await user.save();
+    res.json({ success: true });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ status: "error", message: "Server error" });
+  }
+};
+
+
 export default {
   register,
   sendOTPLoginVerification,
@@ -392,6 +460,7 @@ export default {
   OTPVerification,
   ChangePassword,
   AddPersonalDetails,
+  EditPersonalDetails
 };
 
 //       const generateAccessToken = (user) => {
@@ -450,3 +519,63 @@ export default {
 
 //   }
 // }
+
+
+//
+
+// export const EditPersonalDetails = async (req,res) => {
+//   try {
+//      const {
+//       name,
+//       nickname,
+//       dateOfBirth,
+//       gender,
+//       maritalStatus,
+//       idCardNo,
+//       email,
+//       mobileNumber,
+//       country,
+//       address,
+//       bankName,
+//       branchName,
+//       accountNo,
+//       vaultizoUserId,
+//       accountCreationDate,
+//       vaultizoReferralCode,
+//     } = req.body;
+//     const userId = req.userId;
+//     console.log(userId,'kkkkkk')
+//     console.log(req.body, 'pppp')
+
+//     const user = await User.findOne({_id : userId })
+//     console.log(user,'jjjj')
+//     const personaldetail = user.personalDetails.find(personaldetail=>{
+//       return personaldetail._id.equals(req.body._id)
+//     })
+//     personaldetail.name = name 
+//     personaldetail.nickname = nickname 
+//     personaldetail.dateOfBirth = dateOfBirth 
+//     personaldetail.gender = gender 
+//     personaldetail.maritalStatus = maritalStatus 
+//     personaldetail.idCardNo = idCardNo 
+//     personaldetail.email = email 
+//     personaldetail.mobileNumber = mobileNumber 
+//     personaldetail.country = country 
+//     personaldetail.address = address 
+//     personaldetail.bankName = bankName 
+//     personaldetail.branchName = branchName 
+//     personaldetail.accountNo = accountNo 
+//     personaldetail.vaultizoUserId = vaultizoUserId 
+//     personaldetail.accountCreationDate = accountCreationDate 
+//     personaldetail.vaultizoReferralCode = vaultizoReferralCode 
+
+//     user.save();
+//     res.json({success:true})
+
+      
+//     } catch (error) {
+//       console.error(error);
+//       res.status(500).json({ status: "error", message: "Server error" });
+//     }
+// }
+
