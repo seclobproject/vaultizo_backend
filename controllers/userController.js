@@ -5,6 +5,7 @@ import jwt, { decode } from "jsonwebtoken";
 import { twilioClient, emailTransporter } from "../config/otpConfig.js";
 import { parsePhoneNumberFromString } from "libphonenumber-js";
 import otpVerification from "../models/otpModel.js";
+import axios from "axios";
 
 // user registration controller (method : post)
 
@@ -24,12 +25,14 @@ export const register = async (req, res) => {
         .status(400)
         .json({ message: "User with this email already exists." });
     }
+    const phone = req.body.phone
+    const normalizedPhone = phone ? `+91${phone}` : null;
 
     // Create a user
     const user = new User({
       name: req.body.name,
       email: req.body.email,
-      phone: req.body.phone,
+      phone: normalizedPhone,
       country: req.body.country,
       password: req.body.password,
     });
@@ -54,10 +57,12 @@ export const sendOTPLoginVerification = async (req, res) => {
         .status(400)
         .json({ status: "error", message: "Email or phone must be provided" });
     }
+    
+        const normalizedPhone = phone ? `+91${phone}` : null;
 
     // Find the user by email or phone
     const user = await User.findOne({
-      $or: [{ email: email }, { phone: phone }],
+      $or: [{ email: email }, { phone: normalizedPhone }],
     });
 
     if (!user) {
@@ -89,18 +94,34 @@ export const sendOTPLoginVerification = async (req, res) => {
       text: `Your OTP is:${otp}`,
     };
 
+
     const newOtpVerification = await new otpVerification({
       email: user.email,
+      phone : user.phone,
       otp: otp,
     });
     await newOtpVerification.save();
+    console.log(newOtpVerification,'kkkkkk')
 
-    await emailTransporter.sendMail(mailOptions);
+    if (newOtpVerification){
+      if(phone){
+        const response = await axios.get(
+          `https://otp2.aclgateway.com/OTP_ACL_Web/OtpRequestListener?enterpriseid=stplotp&subEnterpriseid=stplotp&pusheid=stplotp&pushepwd=stpl_01&msisdn=${phone}&sender=HYBERE&msgtext=Hello%20from%20Rubidya.%20Your%20OTP%20for%20password%20reset%20is%20${otp}.%20Enter%20this%20code%20to%20securely%20reset%20your%20password&dpi=1101544370000033504&dtm=1107170911810846940`
+        );
+        console.log(`SMS OTP response: ${response.data}`);
+      }else{
 
-    return res.status(200).json({
-      status: "success",
-      message: "Login successful. Email notification sent.",
-    });
+        await emailTransporter.sendMail(mailOptions);
+
+      }
+      return res.status(200).json({
+        status: "success",
+        message: "successfully send the notification in your inbox.",
+      });
+    }
+
+
+    
   } catch (error) {
     console.error(error);
     res.status(500).json({ status: "error", message: "Server error" });
