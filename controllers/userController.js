@@ -321,7 +321,7 @@ export const ChangePassword = async (req, res) => {
 
 export const AddPersonalDetails = async (req, res) => {
   try {
-    const userId =  req.userId;
+    const userId = req.userId;
 
     const {
       name,
@@ -342,43 +342,44 @@ export const AddPersonalDetails = async (req, res) => {
       vaultizoReferralCode,
     } = req.body;
 
-    const personaldetail = await User.find({ _id: userId });
-    const data = personaldetail[0].personalDetails;
+    // Find the user by ID
+    const user = await User.findById(userId);
 
-    if (data.length < 1) {
-      await User.findOneAndUpdate(
-        { _id: userId },
-        {
-          $push: {
-            personalDetails: {
-              name: name,
-              nickname: nickname,
-              dateOfBirth: dateOfBirth,
-              gender: gender,
-              maritalStatus: maritalStatus,
-              idCardNo: idCardNo,
-              email: email,
-              mobileNumber: mobileNumber,
-              country: country,
-              address: address,
-              bankName: bankName,
-              branchName: branchName,
-              accountNo: accountNo,
-              vaultizoUserId: vaultizoUserId,
-              accountCreationDate: accountCreationDate,
-              vaultizoReferralCode: vaultizoReferralCode,
-            },
-          },
-        }
-      );
-      res.status(200).json({
-        status: "success",
-        message: "Successfully added the personal details",
+    // Check if personal details already exist
+    if (user.personalDetails) {
+      return res.status(400).json({
+        status: "failure",
+        message: "Personal details already added",
       });
     }
-    res.status(400).json({
-      status: "faliure",
-      message: "already addaed the personal details",
+
+    // Update user with personal details
+    user.personalDetails = {
+      name,
+      nickname,
+      dateOfBirth,
+      gender,
+      maritalStatus,
+      idCardNo,
+      email,
+      mobileNumber,
+      country,
+      address,
+      bankName,
+      branchName,
+      accountNo,
+      vaultizoUserId,
+      accountCreationDate,
+      vaultizoReferralCode,
+    };
+
+    await user.save();
+    const personalDetails = user.personalDetails
+
+    res.status(200).json({
+      status: "success",
+      message: "Successfully added the personal details",
+      data : personalDetails 
     });
   } catch (error) {
     console.error(error);
@@ -386,8 +387,10 @@ export const AddPersonalDetails = async (req, res) => {
   }
 };
 
-const EditPersonalDetails = async (req, res) => {
+
+export const EditPersonalDetails = async (req, res) => {
   try {
+    const userId = req.userId;
     const {
       name,
       nickname,
@@ -405,51 +408,48 @@ const EditPersonalDetails = async (req, res) => {
       vaultizoUserId,
       accountCreationDate,
       vaultizoReferralCode,
-      _id 
     } = req.body;
 
-    const userId = req.userId;
-  
+    // Find the user and update personal details
+    const user = await User.findByIdAndUpdate(
+      userId,
+      {
+        personalDetails: {
+          name,
+          nickname,
+          dateOfBirth,
+          gender,
+          maritalStatus,
+          idCardNo,
+          email,
+          mobileNumber,
+          country,
+          address,
+          bankName,
+          branchName,
+          accountNo,
+          vaultizoUserId,
+          accountCreationDate,
+          vaultizoReferralCode,
+        },
+      },
+      { new: true } 
+    );
 
-    const user = await User.findOne({ _id: userId });
     if (!user) {
       return res.status(404).json({ status: "error", message: "User not found" });
     }
-    console.log(user, 'User found');
+    const personalDetails = user.personalDetails
 
-    const personalDetail = user.personalDetails.id(_id);
-    if (!personalDetail) {
-      return res.status(404).json({ status: "error", message: "Personal detail not found" });
-    }
-    console.log(personalDetail,'kkkkkkkkkkkk')
-
-    Object.assign(personalDetail, {
-      name,
-      nickname,
-      dateOfBirth,
-      gender,
-      maritalStatus,
-      idCardNo,
-      email,
-      mobileNumber,
-      country,
-      address,
-      bankName,
-      branchName,
-      accountNo,
-      vaultizoUserId,
-      accountCreationDate,
-      vaultizoReferralCode
-    });
-
-    await user.save();
-    res.json({ success: true });
+    res.json({ success: true, message: "Personal details updated successfully", data : personalDetails });
   } catch (error) {
     console.error(error);
     res.status(500).json({ status: "error", message: "Server error" });
   }
 };
 
+    
+    
 
 export default {
   register,
