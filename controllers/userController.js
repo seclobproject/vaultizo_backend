@@ -1,10 +1,13 @@
 import User from "../models/user.js";
 import { validateRegister } from "../models/ValidationShema.js";
 import bcrypt from "bcrypt";
-import jwt, { decode } from "jsonwebtoken";
+import jwt from "jsonwebtoken";
 import { twilioClient, emailTransporter } from "../config/otpConfig.js";
 import otpVerification from "../models/otpModel.js";
 import axios from "axios";
+
+
+const twilioPhoneNumber = process.env.TWILIO_PHONE_NUMBER;
 
 // user registration controller (method : post)
 
@@ -24,7 +27,7 @@ export const register = async (req, res) => {
         .status(400)
         .json({ message: "User with this email already exists." });
     }
-    const phone = req.body.phone
+    const phone = req.body.phone;
     const normalizedPhone = phone ? `+91${phone}` : null;
 
     // Create a user
@@ -56,8 +59,8 @@ export const sendOTPLoginVerification = async (req, res) => {
         .status(400)
         .json({ status: "error", message: "Email or phone must be provided" });
     }
-    
-        const normalizedPhone = phone ? `+91${phone}` : null;
+
+    const normalizedPhone = phone ? `+91${phone}` : null;
 
     // Find the user by email or phone
     const user = await User.findOne({
@@ -93,34 +96,41 @@ export const sendOTPLoginVerification = async (req, res) => {
       text: `Your OTP is:${otp}`,
     };
 
-
     const newOtpVerification = await new otpVerification({
+      userId: user._id,
       email: user.email,
-      phone : user.phone,
+      phone: user.phone,
       otp: otp,
     });
     await newOtpVerification.save();
-    console.log(newOtpVerification,'kkkkkk')
+    console.log(newOtpVerification, "kkkkkk");
 
-    if (newOtpVerification){
-      if(phone){
-        const response = await axios.get(
-          `https://otp2.aclgateway.com/OTP_ACL_Web/OtpRequestListener?enterpriseid=stplotp&subEnterpriseid=stplotp&pusheid=stplotp&pushepwd=stpl_01&msisdn=${phone}&sender=HYBERE&msgtext=Hello%20from%20Rubidya.%20Your%20OTP%20for%20password%20reset%20is%20${otp}.%20Enter%20this%20code%20to%20securely%20reset%20your%20password&dpi=1101544370000033504&dtm=1107170911810846940`
-        );
-        console.log(`SMS OTP response: ${response.data}`);
-      }else{
-
+    if (newOtpVerification) {
+      if (phone) {
+        twilioClient.messages
+          .create({
+            body: `Vaultizo. Your verification is ${otp}.`,
+            to: normalizedPhone,
+            from: twilioPhoneNumber,
+          })
+          .then((message) => {
+            console.log(`SMS OTP response: ${message.sid}`);
+          })
+          .catch((error) => {
+            console.error(`Failed to send SMS: ${error.message}`);
+            return res.status(500).json({
+              status: "error",
+              message: "Failed to send SMS",
+            });
+          });
+      } else {
         await emailTransporter.sendMail(mailOptions);
-
       }
       return res.status(200).json({
         status: "success",
         message: "successfully send the notification in your inbox.",
       });
     }
-
-
-    
   } catch (error) {
     console.error(error);
     res.status(500).json({ status: "error", message: "Server error" });
@@ -153,8 +163,7 @@ export const OtpVerification = async (req, res) => {
         {
           name: user.name,
           email: user.email,
-          id: user.id
-
+          id: user.id,
         },
         process.env.USER_ACCESS_TOKEN_SECRET,
         {
@@ -224,8 +233,6 @@ export const OtpVerification = async (req, res) => {
   }
 };
 
-
-
 export const forgotPasswordOtp = async (req, res) => {
   try {
     const { email, phone } = req.body;
@@ -236,9 +243,11 @@ export const forgotPasswordOtp = async (req, res) => {
         .json({ status: "error", message: "Email or phone must be provided" });
     }
 
+    const normalizedPhone = phone ? `+91${phone}` : null;
+
     // Find the user by email or phone
     const user = await User.findOne({
-      $or: [{ email: email }, { phone: phone }],
+      $or: [{ email: email }, { phone: normalizedPhone }],
     });
 
     if (!user) {
@@ -253,22 +262,44 @@ export const forgotPasswordOtp = async (req, res) => {
       from: process.env.EMAIL_USER,
       to: user.email,
       subject: "Verify your email",
-      text: `OTP for  Change password : ${otp}`,
+      text: `OTP for Change password: ${otp}`,
     };
 
     const newOtpVerification = await new otpVerification({
-      userId : user._id ,
+      userId: user._id,
       email: user.email,
+      phone: user.phone,
       otp: otp,
     });
     await newOtpVerification.save();
 
-    await emailTransporter.sendMail(mailOptions);
+    if (newOtpVerification) {
+      if (phone) {
+        twilioClient.messages
+          .create({
+            body: ` Vaulizo. Your OTP for password reset is ${otp}. Enter this code to securely reset your password.`,
+            to: normalizedPhone,
+            from: twilioPhoneNumber,
+          })
+          .then((message) => {
+            console.log(`SMS OTP response: ${message.sid}`);
+          })
+          .catch((error) => {
+            console.error(`Failed to send SMS: ${error.message}`);
+            return res.status(500).json({
+              status: "error",
+              message: "Failed to send SMS",
+            });
+          });
+      } else {
+        await emailTransporter.sendMail(mailOptions);
+      }
 
-    return res.status(200).json({
-      status: "success",
-      message: "Otp sent successfully",
-    });
+      return res.status(200).json({
+        status: "success",
+        message: "OTP sent successfully",
+      });
+    }
   } catch (error) {
     console.error(error);
     res.status(500).json({ status: "error", message: "Server error" });
@@ -292,18 +323,21 @@ export const OTPVerification = async (req, res) => {
     if (otpMatch) {
       return res
         .status(200)
-        .json({ status: "success", message: "Sucessfully varified otp", data : otpMatch });
+        .json({
+          status: "success",
+          message: "Sucessfully varified otp",
+          data: otpMatch,
+        });
     }
   } catch (error) {
     console.error(error);
-    res.status(500).json({ status: "error", message: "Server error"  });
+    res.status(500).json({ status: "error", message: "Server error" });
   }
 };
 
 export const ChangePassword = async (req, res) => {
   try {
     const { password } = req.body;
-    
 
     const hashPassword = await bcrypt.hash(password, 10);
 
@@ -374,19 +408,18 @@ export const AddPersonalDetails = async (req, res) => {
     };
 
     await user.save();
-    const personalDetails = user.personalDetails
+    const personalDetails = user.personalDetails;
 
     res.status(200).json({
       status: "success",
       message: "Successfully added the personal details",
-      data : personalDetails 
+      data: personalDetails,
     });
   } catch (error) {
     console.error(error);
     res.status(500).json({ status: "error", message: "Server error" });
   }
 };
-
 
 export const EditPersonalDetails = async (req, res) => {
   try {
@@ -433,23 +466,26 @@ export const EditPersonalDetails = async (req, res) => {
           vaultizoReferralCode,
         },
       },
-      { new: true } 
+      { new: true }
     );
 
     if (!user) {
-      return res.status(404).json({ status: "error", message: "User not found" });
+      return res
+        .status(404)
+        .json({ status: "error", message: "User not found" });
     }
-    const personalDetails = user.personalDetails
+    const personalDetails = user.personalDetails;
 
-    res.json({ success: true, message: "Personal details updated successfully", data : personalDetails });
+    res.json({
+      success: true,
+      message: "Personal details updated successfully",
+      data: personalDetails,
+    });
   } catch (error) {
     console.error(error);
     res.status(500).json({ status: "error", message: "Server error" });
   }
 };
-
-    
-    
 
 export default {
   register,
@@ -459,7 +495,7 @@ export default {
   OTPVerification,
   ChangePassword,
   AddPersonalDetails,
-  EditPersonalDetails
+  EditPersonalDetails,
 };
 
 //       const generateAccessToken = (user) => {
@@ -519,7 +555,6 @@ export default {
 //   }
 // }
 
-
 //
 
 // export const EditPersonalDetails = async (req,res) => {
@@ -551,30 +586,28 @@ export default {
 //     const personaldetail = user.personalDetails.find(personaldetail=>{
 //       return personaldetail._id.equals(req.body._id)
 //     })
-//     personaldetail.name = name 
-//     personaldetail.nickname = nickname 
-//     personaldetail.dateOfBirth = dateOfBirth 
-//     personaldetail.gender = gender 
-//     personaldetail.maritalStatus = maritalStatus 
-//     personaldetail.idCardNo = idCardNo 
-//     personaldetail.email = email 
-//     personaldetail.mobileNumber = mobileNumber 
-//     personaldetail.country = country 
-//     personaldetail.address = address 
-//     personaldetail.bankName = bankName 
-//     personaldetail.branchName = branchName 
-//     personaldetail.accountNo = accountNo 
-//     personaldetail.vaultizoUserId = vaultizoUserId 
-//     personaldetail.accountCreationDate = accountCreationDate 
-//     personaldetail.vaultizoReferralCode = vaultizoReferralCode 
+//     personaldetail.name = name
+//     personaldetail.nickname = nickname
+//     personaldetail.dateOfBirth = dateOfBirth
+//     personaldetail.gender = gender
+//     personaldetail.maritalStatus = maritalStatus
+//     personaldetail.idCardNo = idCardNo
+//     personaldetail.email = email
+//     personaldetail.mobileNumber = mobileNumber
+//     personaldetail.country = country
+//     personaldetail.address = address
+//     personaldetail.bankName = bankName
+//     personaldetail.branchName = branchName
+//     personaldetail.accountNo = accountNo
+//     personaldetail.vaultizoUserId = vaultizoUserId
+//     personaldetail.accountCreationDate = accountCreationDate
+//     personaldetail.vaultizoReferralCode = vaultizoReferralCode
 
 //     user.save();
 //     res.json({success:true})
 
-      
 //     } catch (error) {
 //       console.error(error);
 //       res.status(500).json({ status: "error", message: "Server error" });
 //     }
 // }
-
