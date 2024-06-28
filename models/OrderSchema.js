@@ -119,6 +119,16 @@ const orderSchema = new mongoose.Schema({
     timestamps: true
 });
 
+orderSchema.pre('save', async function(next) {
+    // Update the user's order when a new order place 
+    await mongoose.model('User').updateOne(
+      { _id: this.userId },
+      { $push: { OrderHistory: this._id } }
+    );
+    next();
+  });
+
+
 // Indexes for efficient querying
 orderSchema.index({ orderId: 1 });
 orderSchema.index({ "codDetails.emailId": 1 });

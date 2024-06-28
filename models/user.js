@@ -117,6 +117,10 @@ const userSchema = new mongoose.Schema(
       type: personalDetailsSchema,
       required: true,
     },
+    OrderHistory: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Order', // Reference to the Order model
+    }]
   },
   {
     timestamps: true,
