@@ -51,6 +51,7 @@ export const register = async (req, res) => {
 // user Login controller (method : post)
 
 export const sendOTPLoginVerification = async (req, res) => {
+  console.log('llll')
   try {
     const { email, phone, password } = req.body;
 

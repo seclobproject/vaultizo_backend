@@ -85,14 +85,14 @@ const bankTransferDetailsSchema = new mongoose.Schema({
 
 // Define the main order schema
 const orderSchema = new mongoose.Schema({
-    userId:{
-        type:mongoose.Schema.Types.ObjectId,
-        ref:'User',
-        required:true
+    userId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: true
     },
-    expected_delivery:{
-        type:String,
-        required:true
+    expected_delivery: {
+        type: String,
+        required: true
     },
     orderDetails: {
         type: orderDetailsSchema,
@@ -103,19 +103,17 @@ const orderSchema = new mongoose.Schema({
         required: true,
         enum: ['COD', 'Bank Transfer']
     },
-    paymentDetails: {
-        codDetails: codDetailsSchema,
-        bankTransferDetails: bankTransferDetailsSchema
-    },
+    codDetails: codDetailsSchema,
+    bankTransferDetails: bankTransferDetailsSchema,
     orderStatus: {
         type: String,
         required: true,
         enum: ['pending', 'Paid', 'canceled'],
         default: 'pending'
     },
-    statusLevel:{
-        type:Number,
-        default:0
+    statusLevel: {
+        type: Number,
+        default: 0
     }
 }, {
     timestamps: true
@@ -123,11 +121,11 @@ const orderSchema = new mongoose.Schema({
 
 // Indexes for efficient querying
 orderSchema.index({ orderId: 1 });
-orderSchema.index({ "paymentDetails.codDetails.emailId": 1 });
+orderSchema.index({ "codDetails.emailId": 1 });
 orderSchema.index({ paymentMethod: 1 });
 orderSchema.index({ orderStatus: 1 });
 orderSchema.index({ createdAt: 1 });
-orderSchema.index({ "paymentDetails.codDetails.currentLocation": "2dsphere" });
+orderSchema.index({ "codDetails.currentLocation": "2dsphere" });
 
 const Order = mongoose.model('Order', orderSchema);
 
