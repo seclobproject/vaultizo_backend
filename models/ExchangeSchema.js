@@ -1,8 +1,8 @@
-import mongoose from "mongoose";
+const mongoose = require('mongoose');
 
 // Define the schema for order details
-const orderDetailsSchema = new mongoose.Schema({
-    buyQuantity: {
+const ExchangeDetailsSchema = new mongoose.Schema({
+    SellQuantity: {
         type: Number,
         required: true
     },
@@ -16,9 +16,11 @@ const orderDetailsSchema = new mongoose.Schema({
     }
 }, { _id: false });
 
-// Define the schema for COD details including customer details
 const codDetailsSchema = new mongoose.Schema({
-   
+    withdrawAmount: {
+        type: Number,
+        required: true
+    },
     companyName: {
         type: String,
         required: true
@@ -46,13 +48,9 @@ const codDetailsSchema = new mongoose.Schema({
     currentLocation: {
         type: {
             type: String,
-            enum: ['Point'],
             required: true
         },
-        coordinates: {
-            type: [Number],
-            required: true
-        }
+        
     }
 }, { _id: false });
 
@@ -84,24 +82,18 @@ const bankTransferDetailsSchema = new mongoose.Schema({
     }
 }, { _id: false });
 
-// Define the main order schema
-const orderSchema = new mongoose.Schema({
+
+const ExchangeSchema = new mongoose.Schema(
+  {
     userId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
-        required: true
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: true,
     },
-    orderDetails: {
-        type: orderDetailsSchema,
+    ExchangeDetails: {
+        type: ExchangeDetailsSchema,
     },
-    expected_delivery: {
-        type: String,
-        required: true
-    },
-    WithdrawAmount: {
-        type: String,
-        required: true
-    },
+   
     paymentMethod: {
         type: String,
         required: true,
@@ -109,42 +101,35 @@ const orderSchema = new mongoose.Schema({
     },
     codDetails: codDetailsSchema,
     bankTransferDetails: bankTransferDetailsSchema,
-    orderStatus: {
-        type: String,
-        required: true,
-        enum: ['pending', 'Paid', 'canceled'],
-        default: 'pending'
+    ExchangeStatus: {
+      type: String,
+      enum: ['pending', 'completed', 'canceled'],
+      default: 'pending',
+    },
+    transactionDate: {
+      type: Date,
+      default: Date.now,
     },
     statusLevel: {
         type: Number,
         default: 0
-    },
-    OrderedDate: {
-        type: Date,
-        default: Date.now,
-      }
-}, {
-    timestamps: true
-});
+    }
+   
+  },
+  {
+    timestamps: true,
+  }
+);
 
-orderSchema.pre('save', async function(next) {
+ExchangeSchema.pre('save', async function(next) {
     // Update the user's order when a new order place 
     await mongoose.model('User').updateOne(
       { _id: this.userId },
-      { $push: { OrderHistory: this._id } }
+      { $push: { ExchangeHistory: this._id } }
     );
     next();
   });
 
+const Exchange = mongoose.model('Exchange', ExchangeSchema);
 
-// Indexes for efficient querying
-orderSchema.index({ orderId: 1 });
-orderSchema.index({ "codDetails.emailId": 1 });
-orderSchema.index({ paymentMethod: 1 });
-orderSchema.index({ orderStatus: 1 });
-orderSchema.index({ createdAt: 1 });
-orderSchema.index({ "codDetails.currentLocation": "2dsphere" });
-
-const Order = mongoose.model('Order', orderSchema);
-
-export default Order;
+module.exports = Exchange;

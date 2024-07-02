@@ -1,9 +1,8 @@
-import User from "../models/user.js";
 import Order from "../models/OrderSchema.js";
 
 export const placeOrder = async (req, res) => {
   try {
-    const { WithdrawAmount, paymentMethod, codDetails, bankTransferDetails } = req.body;
+    const { orderDetails, paymentMethod, codDetails, bankTransferDetails } = req.body;
     const userId = req.userId;
 
     const status = paymentMethod === "Wallet" ? "Paid" : "pending";

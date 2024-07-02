@@ -120,6 +120,10 @@ const userSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Order', // Reference to the Order model
     }],
+    ExchangeHistory: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Exchange', // Reference to the exchange model
+    }],
     referralCode: {
       type: String,
       unique: true,
