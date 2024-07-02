@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from "mongoose";
 
 // Define the schema for order details
 const ExchangeDetailsSchema = new mongoose.Schema({
@@ -132,4 +132,4 @@ ExchangeSchema.pre('save', async function(next) {
 
 const Exchange = mongoose.model('Exchange', ExchangeSchema);
 
-module.exports = Exchange;
+export default Exchange;

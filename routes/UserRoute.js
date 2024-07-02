@@ -2,6 +2,8 @@ import express from 'express';
 const userRoute = express.Router()
 import userController from '../controllers/userController.js';
 import OrderController from '../controllers/OrderController.js';
+import ExchangeController from '../controllers/ExchangeController.js';
+
 
 import verifyToken from '../middleware/userAuth.js'
 userRoute
@@ -14,6 +16,11 @@ userRoute
 .post ('/addDetails',verifyToken,userController.AddPersonalDetails)
 .put ('/editDetails',verifyToken,userController.EditPersonalDetails)
 
+
+//Exchange routes
+.post('/exchange',verifyToken,ExchangeController.DollerExchange)
+
+//Buying routes
 .post('/placeOrder',verifyToken,OrderController.placeOrder);
 
 
