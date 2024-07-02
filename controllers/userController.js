@@ -12,7 +12,6 @@ const twilioPhoneNumber = process.env.TWILIO_PHONE_NUMBER;
 // user registration controller (method : post)
 
 export const register = async (req, res) => {
-  console.log(req.body);
   try {
     // Validate the request body
     const { error } = validateRegister(req.body);
@@ -103,7 +102,6 @@ export const sendOTPLoginVerification = async (req, res) => {
       otp: otp,
     });
     await newOtpVerification.save();
-    console.log(newOtpVerification, "kkkkkk");
 
     if (newOtpVerification) {
       if (phone) {
