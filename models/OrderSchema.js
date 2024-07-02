@@ -94,8 +94,8 @@ const orderSchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    orderDetails: {
-        type: orderDetailsSchema,
+    WithdrawAmount: {
+        type: String,
         required: true
     },
     paymentMethod: {

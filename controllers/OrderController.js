@@ -3,7 +3,7 @@ import Order from "../models/OrderSchema.js";
 
 export const placeOrder = async (req, res) => {
   try {
-    const { orderDetails, paymentMethod, codDetails, bankTransferDetails } = req.body;
+    const { WithdrawAmount, paymentMethod, codDetails, bankTransferDetails } = req.body;
     const userId = req.userId;
 
     const status = paymentMethod === "Wallet" ? "Paid" : "pending";
