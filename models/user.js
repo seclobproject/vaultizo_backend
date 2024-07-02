@@ -88,7 +88,6 @@ const personalDetailsSchema = new mongoose.Schema({
   },
 });
 
-// Define the user schema
 const userSchema = new mongoose.Schema(
   {
     name: {
@@ -117,10 +116,15 @@ const userSchema = new mongoose.Schema(
       type: personalDetailsSchema,
       required: true,
     },
-    OrderHistory: [{
+    orderHistory: [{
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Order', // Reference to the Order model
-    }]
+    }],
+    referralCode: {
+      type: String,
+      unique: true,
+      sparse: true, // Ensures uniqueness for non-null values
+    }
   },
   {
     timestamps: true,
