@@ -14,9 +14,8 @@ const orderDetailsSchema = new mongoose.Schema({
 
 // Define the schema for COD details including customer details
 const codDetailsSchema = new mongoose.Schema({
-    withdrawAmount: {
-        type: Number,
-        required: true
+    orderDetails: {
+        type: orderDetailsSchema,
     },
     companyName: {
         type: String,
