@@ -1,11 +1,9 @@
 import Order from "../models/OrderSchema.js";
 
-
-
-//genrate order id 
+//genrate order id
 function generateRandomPrefix(length) {
-  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-  let result = '';
+  const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  let result = "";
   for (let i = 0; i < length; i++) {
     const randomIndex = Math.floor(Math.random() * characters.length);
     result += characters[randomIndex];
@@ -22,9 +20,12 @@ function generateOrderID() {
 }
 
 
+
+
 export const placeOrder = async (req, res) => {
   try {
-    const { orderDetails, paymentMethod, codDetails, bankTransferDetails } = req.body;
+    const { orderDetails, paymentMethod, codDetails, bankTransferDetails } =
+      req.body;
     const userId = req.userId;
 
     const status = paymentMethod === "Wallet" ? "Paid" : "pending";
@@ -44,13 +45,15 @@ export const placeOrder = async (req, res) => {
     if (paymentMethod === "COD") {
       if (!codDetails) {
         return res.status(400).json({
-          message: "COD details are required for Cash on Delivery payment method.",
+          message:
+            "COD details are required for Cash on Delivery payment method.",
         });
       }
     } else if (paymentMethod === "Bank Transfer") {
       if (!bankTransferDetails) {
         return res.status(400).json({
-          message: "Bank Transfer details are required for Bank Transfer payment method.",
+          message:
+            "Bank Transfer details are required for Bank Transfer payment method.",
         });
       }
     } else {
@@ -60,28 +63,36 @@ export const placeOrder = async (req, res) => {
     const orderID = generateOrderID();
 
     const order = new Order({
-      orderId : orderID ,
+      orderId: orderID,
       userId,
       expected_delivery: deliveryDate,
       orderDetails,
       paymentMethod,
       codDetails: paymentMethod === "COD" ? codDetails : undefined,
-      bankTransferDetails: paymentMethod === "Bank Transfer" ? bankTransferDetails : undefined,
+      bankTransferDetails:
+        paymentMethod === "Bank Transfer" ? bankTransferDetails : undefined,
       orderStatus: status,
-      statusLevel
+      statusLevel,
     });
-    
+
     const myOrder = await order.save();
 
     if (myOrder) {
-      res.status(200).json({ success: true, msg: 'Successfully created order' , data : myOrder , orderId : myOrder.orderId });
+      res
+        .status(200)
+        .json({
+          success: true,
+          msg: "Successfully created order",
+          data: myOrder,
+          orderId: myOrder.orderId,
+        });
     }
   } catch (error) {
     console.log(error.message);
-    res.status(500).json({ success: false, msg: 'Server Error' });
+    res.status(500).json({ success: false, msg: "Server Error" });
   }
 };
 
 export default {
-  placeOrder
+  placeOrder,
 };

@@ -332,7 +332,7 @@ export const OTPVerification = async (req, res) => {
 
 export const ChangePassword = async (req, res) => {
   try {
-    const { password } = req.body;
+    const { password , userId} = req.body;
 
     const hashPassword = await bcrypt.hash(password, 10);
 
@@ -493,7 +493,6 @@ export const Listorders = async (req, res) => {
     const orderData = await User.findById(userId)
       .sort({ _id: -1 })
       .populate("orderHistory");
-    console.log(orderData);
     res.status(200).json({
       status: "success",
       message: "Successfully fetched order history",
