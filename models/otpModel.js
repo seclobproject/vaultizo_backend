@@ -7,7 +7,6 @@ const userOTPVerificationSchema = new mongoose.Schema({
        },
         email:{
             type: String,
-            unique: false,
             sparse: true,
         },
         phone :{
