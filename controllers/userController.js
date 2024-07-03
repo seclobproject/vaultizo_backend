@@ -6,7 +6,6 @@ import { twilioClient, emailTransporter } from "../config/otpConfig.js";
 import otpVerification from "../models/otpModel.js";
 import axios from "axios";
 
-
 const twilioPhoneNumber = process.env.TWILIO_PHONE_NUMBER;
 
 // user registration controller (method : post)
@@ -319,13 +318,11 @@ export const OTPVerification = async (req, res) => {
     await otpVerification.deleteOne({ otp: otp });
 
     if (otpMatch) {
-      return res
-        .status(200)
-        .json({
-          status: "success",
-          message: "Sucessfully varified otp",
-          data: otpMatch,
-        });
+      return res.status(200).json({
+        status: "success",
+        message: "Sucessfully varified otp",
+        data: otpMatch,
+      });
     }
   } catch (error) {
     console.error(error);
@@ -485,6 +482,29 @@ export const EditPersonalDetails = async (req, res) => {
   }
 };
 
+export const Listorders = async (req, res) => {
+  try {
+    const userId = req.userId;
+    if (!userId) {
+      return res
+        .status(404)
+        .json({ status: "error", message: "user is un Authorized" });
+    }
+    const orderData = await User.findById(userId)
+      .sort({ _id: -1 })
+      .populate("orderHistory");
+    console.log(orderData);
+    res.status(200).json({
+      status: "success",
+      message: "Successfully fetched order history",
+      data: orderData.orderHistory,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ status: "error", message: "Server error" });
+  }
+};
+
 export default {
   register,
   sendOTPLoginVerification,
@@ -494,6 +514,7 @@ export default {
   ChangePassword,
   AddPersonalDetails,
   EditPersonalDetails,
+  Listorders,
 };
 
 //       const generateAccessToken = (user) => {

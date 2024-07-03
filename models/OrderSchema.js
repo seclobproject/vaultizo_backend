@@ -133,7 +133,7 @@ orderSchema.pre('save', async function(next) {
     // Update the user's order when a new order place 
     await mongoose.model('User').updateOne(
       { _id: this.userId },
-      { $push: { OrderHistory: this._id } }
+      { $push: { orderHistory: this._id } }
     );
     next();
   });
