@@ -86,6 +86,11 @@ const bankTransferDetailsSchema = new mongoose.Schema({
 
 // Define the main order schema
 const orderSchema = new mongoose.Schema({
+    orderId : {
+        type : String,
+        required : true,
+        unique : true
+    },
     userId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
@@ -98,10 +103,7 @@ const orderSchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    WithdrawAmount: {
-        type: String,
-        required: true
-    },
+   
     paymentMethod: {
         type: String,
         required: true,

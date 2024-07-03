@@ -1,5 +1,27 @@
 import Order from "../models/OrderSchema.js";
 
+
+
+//genrate order id 
+function generateRandomPrefix(length) {
+  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  let result = '';
+  for (let i = 0; i < length; i++) {
+    const randomIndex = Math.floor(Math.random() * characters.length);
+    result += characters[randomIndex];
+  }
+  return result;
+}
+
+function generateOrderID() {
+  const prefix = generateRandomPrefix(2);
+  const timestamp = Date.now().toString();
+  const randomNumber = Math.floor(1000 + Math.random() * 9000).toString();
+  const orderID = `${prefix}${timestamp.slice(-6)}${randomNumber}`;
+  return orderID;
+}
+
+
 export const placeOrder = async (req, res) => {
   try {
     const { orderDetails, paymentMethod, codDetails, bankTransferDetails } = req.body;
@@ -35,7 +57,10 @@ export const placeOrder = async (req, res) => {
       return res.status(400).json({ message: "Invalid payment method." });
     }
 
+    const orderID = generateOrderID();
+
     const order = new Order({
+      orderId : orderID ,
       userId,
       expected_delivery: deliveryDate,
       orderDetails,
@@ -46,10 +71,10 @@ export const placeOrder = async (req, res) => {
       statusLevel
     });
     
-    const savedOrder = await order.save();
+    const myOrder = await order.save();
 
-    if (savedOrder) {
-      res.status(200).json({ success: true, msg: 'Successfully created order' });
+    if (myOrder) {
+      res.status(200).json({ success: true, msg: 'Successfully created order' , data : myOrder , orderId : myOrder.orderId });
     }
   } catch (error) {
     console.log(error.message);
