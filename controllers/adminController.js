@@ -1,9 +1,8 @@
 import User from "../models/user.js";
+import CurrencyValue from "../models/currencyModel.js";
 import jwt from "jsonwebtoken";
 import otpVerification from "../models/otpModel.js";
 import {  emailTransporter } from "../config/otpConfig.js";
-
-
 
 
 export const sendAdminOtp = async (req,res) => {
@@ -16,7 +15,7 @@ export const sendAdminOtp = async (req,res) => {
 
         const user = await User.findOne({ email: email });
 
-        let otp = `${Math.floor(10000 + Math.random() * 9000)}`;
+        let otp = `${Math.floor(10000  + Math.random() * 9000)}`;
         const mailOptions = {
             from: process.env.EMAIL_USER,
             to: user.email,
@@ -106,9 +105,28 @@ export const adminLogin = async (req,res) => {
     }
 } 
 
+export const setCurrencyValue = async (req, res) => {
+  try {
+    const { currency, value } = req.body;
+    const adminId = req.adminId
+    const newCurrencyValue = new CurrencyValue({
+      currency,
+      value,
+      adminId
+    });
+    await newCurrencyValue.save();
+    res.status(201).json({ message: 'Currency value set successfully' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
 
 
 export default {
     sendAdminOtp,
-    adminLogin
+    adminLogin,
+    setCurrencyValue
   };
+
+  

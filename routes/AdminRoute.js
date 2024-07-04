@@ -6,6 +6,8 @@ adminRoute
 .post('/login',adminController.sendAdminOtp)
 .post('/adminLogin',adminController.adminLogin)
 
+.post('/setvalue',adminController.setCurrencyValue)
+
 
 
 export default adminRoute
