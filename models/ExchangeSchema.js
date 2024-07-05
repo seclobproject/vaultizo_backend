@@ -85,6 +85,12 @@ const bankTransferDetailsSchema = new mongoose.Schema({
 
 const ExchangeSchema = new mongoose.Schema(
   {
+
+    exchangeId : {
+        type : String,
+        required : true,
+        unique : true
+    },
     userId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
