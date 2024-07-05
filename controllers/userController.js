@@ -504,6 +504,28 @@ export const Listorders = async (req, res) => {
   }
 };
 
+export const ListExchange = async (req, res) => {
+  try {
+    const userId = req.userId;
+    if (!userId) {
+      return res
+        .status(404)
+        .json({ status: "error", message: "user is un Authorized" });
+    }
+    const exchangeData = await User.findById(userId)
+      .sort({ _id: -1 })
+      .populate("ExchangeHistory");
+    res.status(200).json({
+      status: "success",
+      message: "Successfully fetched Exchange history",
+      data: exchangeData.ExchangeHistory,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ status: "error", message: "Server error" });
+  }
+};
+
 export default {
   register,
   sendOTPLoginVerification,
@@ -514,6 +536,7 @@ export default {
   AddPersonalDetails,
   EditPersonalDetails,
   Listorders,
+  ListExchange ,
 };
 
 //       const generateAccessToken = (user) => {

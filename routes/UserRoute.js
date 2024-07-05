@@ -16,6 +16,7 @@ userRoute
 .post ('/addDetails',verifyToken,userController.AddPersonalDetails)
 .put ('/editDetails',verifyToken,userController.EditPersonalDetails)
 .get('/listorder',verifyToken,userController.Listorders)
+.get('/listexchange',verifyToken,userController.ListExchange)
 
 
 //Exchange routes
