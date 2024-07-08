@@ -1,9 +1,9 @@
-import User from "../models/user.js";
-import { validateRegister } from "../models/ValidationShema.js";
+import User from "../models/userSchema.js";
+import { validateRegister } from "../models/ValidationSchema.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { twilioClient, emailTransporter } from "../config/otpConfig.js";
-import otpVerification from "../models/otpModel.js";
+import otpVerification from "../models/otpSchema.js";
 import axios from "axios";
 
 const twilioPhoneNumber = process.env.TWILIO_PHONE_NUMBER;

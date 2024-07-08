@@ -1,7 +1,7 @@
-import User from "../models/user.js";
-import CurrencyValue from "../models/currencyModel.js";
+import User from "../models/userSchema.js";
+import CurrencyValue from "../models/currencySchema.js";
 import jwt from "jsonwebtoken";
-import otpVerification from "../models/otpModel.js";
+import otpVerification from "../models/otpSchema.js";
 import {  emailTransporter } from "../config/otpConfig.js";
 
 

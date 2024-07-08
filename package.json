@@ -24,6 +24,7 @@
     "mongoose": "^8.4.3",
     "nodemailer": "^6.9.14",
     "otp-generator": "^4.0.1",
+    "redis": "^4.6.15",
     "springedge": "^1.0.6",
     "twilio": "^5.2.0",
     "web3": "^4.10.0"
