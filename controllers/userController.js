@@ -482,7 +482,7 @@ export const EditPersonalDetails = async (req, res) => {
   }
 };
 
-export const Listorders = async (req, res) => {
+export const ListHistory = async (req, res) => {
   try {
     const userId = req.userId;
     const OrderPage = parseInt(req.query.page) || 1
@@ -493,15 +493,19 @@ export const Listorders = async (req, res) => {
         .status(404)
         .json({ status: "error", message: "user is un Authorized" });
     }
-    const orderData = await User.findById(userId)
+    const user = await User.findById(userId)
       .sort({ _id: -1 })
       .populate("orderHistory")
+      .populate("ExchangeHistory")
       .skip((OrderPage -1) * limit)
       .limit(limit)
     res.status(200).json({
       status: "success",
-      message: "Successfully fetched order history",
-      data: orderData.orderHistory,
+      message: "Successfully fetched order and exchange history",
+      data: {
+        orderHistory : user.orderHistory ,
+        ExchangeHistory : user.ExchangeHistory,
+      }
     });
   } catch (error) {
     console.error(error);
@@ -509,31 +513,7 @@ export const Listorders = async (req, res) => {
   }
 };
 
-export const ListExchange = async (req, res) => {
-  try {
-    const userId = req.userId;
-    const ExchangePage = parseInt(req.query.page) || 1
-    const limit = 5
-    if (!userId) {
-      return res
-        .status(404)
-        .json({ status: "error", message: "user is un Authorized" });
-    }
-    const exchangeData = await User.findById(userId)
-      .sort({ _id: -1 })
-      .populate("ExchangeHistory")
-      .skip((ExchangePage -1) * limit)
-      .limit(limit)
-    res.status(200).json({
-      status: "success",
-      message: "Successfully fetched Exchange history",
-      data: exchangeData.ExchangeHistory,
-    });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ status: "error", message: "Server error" });
-  }
-};
+
 
 export default {
   register,
@@ -545,7 +525,6 @@ export default {
   AddPersonalDetails,
   EditPersonalDetails,
   Listorders,
-  ListExchange ,
 };
 
 //       const generateAccessToken = (user) => {

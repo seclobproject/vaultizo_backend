@@ -15,8 +15,7 @@ userRoute
 .patch('/change-password',verifyToken, userController.ChangePassword)
 .post ('/addDetails',verifyToken,userController.AddPersonalDetails)
 .put ('/editDetails',verifyToken,userController.EditPersonalDetails)
-.get('/listorder',verifyToken,userController.Listorders)
-.get('/listexchange',verifyToken,userController.ListExchange)
+.get('/listHistory',verifyToken,userController.Listorders)
 
 
 //Exchange routes
