@@ -485,7 +485,7 @@ export const EditPersonalDetails = async (req, res) => {
 export const ListHistory = async (req, res) => {
   try {
     const userId = req.userId;
-    const OrderPage = parseInt(req.query.page) || 1
+    const Page = parseInt(req.query.page) || 1
     const limit = 5
 
     if (!userId) {
@@ -497,7 +497,7 @@ export const ListHistory = async (req, res) => {
       .sort({ _id: -1 })
       .populate("orderHistory")
       .populate("ExchangeHistory")
-      .skip((OrderPage -1) * limit)
+      .skip((Page -1) * limit)
       .limit(limit)
     res.status(200).json({
       status: "success",
