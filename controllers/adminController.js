@@ -115,12 +115,27 @@ export const setCurrencyValue = async (req, res) => {
 export const ListUser = async (req,res) => {
   try {
     const Users = await  User.find({ isAdmin : false })
-    res.status(200).json({status :"successfully fetched users" , data : Users})
+    res.status(200).json({status :"success" ,message : "successfully fetched users ", data : Users})
   } catch (error) {
     console.error(error);
     res.status(500).json({ status: "error", message: "Server error" });
   }
 }
+
+
+export const ListUsersById = async (req,res) => {
+  try {
+    const {id} = req.params 
+    const user = await User.findById ({_id : id}) 
+    res.status(200).json({status : "success" , message : "successfully fetched user by id " , data : user})      
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ status: "error", message: "Server error" });
+  }
+  
+}
+
+
 
 
 
@@ -132,7 +147,8 @@ export default {
     sendAdminOtp,
     adminLogin,
     setCurrencyValue,
-    ListUser
+    ListUser , 
+    ListUsersById
   };
 
   
