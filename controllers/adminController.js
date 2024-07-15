@@ -115,7 +115,11 @@ export const setCurrencyValue = async (req, res) => {
 
 export const ListUser = async (req, res) => {
   try {
-    const Users = await User.find({ isAdmin: false });
+    const Page = parseInt(req.query.page) || 1
+    const limit = 10
+    const Users = await User.find({ isAdmin: false }).skip((Page -1) * limit).limit(limit)
+   
+    
     res
       .status(200)
       .json({
@@ -149,7 +153,9 @@ export const ListUsersById = async (req, res) => {
 
 export const ListOrder = async (req,res) => {
   try {
-    const orderList = await Order.find().populate('userId')
+    const Page = parseInt(req.query.page) || 1
+    const limit = 10
+    const orderList = await Order.find().populate('userId').skip((Page -1) * limit).limit(limit)
     res.status(200).json({status : "success" , message : "successfully fetched orers" , data : orderList })
     
   } catch (error) {
@@ -160,7 +166,9 @@ export const ListOrder = async (req,res) => {
 
 export const ListExchange  = async (req,res) => {
   try {
-    const ExchangeList = await Exchange.find().populate('userId')
+    const Page = parseInt(req.query.page) || 1
+    const limit = 10
+    const ExchangeList = await Exchange.find().populate('userId').skip((Page -1) * limit).limit(limit)
     res.status(200).json({status : "success" , message : "successfully fetched exchanges" , data : ExchangeList })
     
   } catch (error) {
