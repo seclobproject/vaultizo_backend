@@ -76,21 +76,12 @@ export const adminLogin = async (req,res) => {
                   expiresIn: "1d",
                 }
               );
-              const refreshToken = jwt.sign(
-                {
-                  adminname: admin.username,
-                },
-                process.env.REFRESH_TOKEN_SECRET,
-                { expiresIn: "1d" }
-              );
+
+              admin.isAdmin = true
+              await admin.save();
+            
         
-              // Assigning refresh token in http-only cookie
-              res.cookie("jwt", refreshToken, {
-                httpOnly: true,
-                sameSite: "None",
-                secure: true,
-                maxAge: 24 * 60 * 60 * 1000, // 1 day
-              });
+         
               return res.status(200).json({
                 status: "success",
                 message: "Login successful",
@@ -120,6 +111,10 @@ export const setCurrencyValue = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+
+
+
 
 
 
