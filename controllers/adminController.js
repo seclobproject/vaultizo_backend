@@ -5,6 +5,8 @@ import CurrencyValue from "../models/currencySchema.js";
 import jwt from "jsonwebtoken";
 import otpVerification from "../models/otpSchema.js";
 import { emailTransporter } from "../config/otpConfig.js";
+import mongoose from "mongoose";
+
 
 export const sendAdminOtp = async (req, res) => {
   try {
@@ -154,8 +156,13 @@ export const ListUsersById = async (req, res) => {
 export const ListOrder = async (req,res) => {
   try {
     const Page = parseInt(req.query.page) || 1
+    const paymentMethod = req.query.paymentMethod;
     const limit = 10
-    const orderList = await Order.find().populate('userId').skip((Page -1) * limit).limit(limit)
+    let query = {}
+    if(paymentMethod){
+      query.paymentMethod = new RegExp(paymentMethod, 'i')
+    }
+    const orderList = await Order.find(query).populate('userId').skip((Page -1) * limit).limit(limit).exec()
     res.status(200).json({status : "success" , message : "successfully fetched orers" , data : orderList })
     
   } catch (error) {
@@ -167,8 +174,13 @@ export const ListOrder = async (req,res) => {
 export const ListExchange  = async (req,res) => {
   try {
     const Page = parseInt(req.query.page) || 1
+    const paymentMethod = req.query.paymentMethod;
     const limit = 10
-    const ExchangeList = await Exchange.find().populate('userId').skip((Page -1) * limit).limit(limit)
+    let query = {}
+    if(paymentMethod){
+      query.paymentMethod = new RegExp(paymentMethod, 'i')
+    }
+    const ExchangeList = await Exchange.find(query).populate('userId').skip((Page -1) * limit).limit(limit)
     res.status(200).json({status : "success" , message : "successfully fetched exchanges" , data : ExchangeList })
     
   } catch (error) {
@@ -176,6 +188,42 @@ export const ListExchange  = async (req,res) => {
     res.status(500).json({ status: "error", message: "Server error" });
   }
 }
+
+export const UpdateOrderStatus = async (req, res) => {
+  try {
+    const statusLevel = parseInt(req.query.level);
+    const { id } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ status: "error", message: "Invalid order ID" });
+    }
+
+    if (isNaN(statusLevel)) {
+      return res.status(400).json({ status: "error", message: "Invalid status level" });
+    }
+
+    // Update the order's status level
+    const updateFields = { statusLevel };
+
+    if (statusLevel === 1) {
+      updateFields.orderStatus = "Paid";
+    }else if (statusLevel === 0){
+      updateFields.orderStatus = "pending";
+   }
+
+    const updatedOrder = await Order.findByIdAndUpdate(id, updateFields, { new: true });
+
+    if (!updatedOrder) {
+      return res.status(404).json({ status: "error", message: "Order not found" });
+    }
+
+    res.status(202).json({ status: "success", data: updatedOrder });
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ status: "error", message: "Server error" });
+  }
+}; 
 
 
 export default {
@@ -185,5 +233,6 @@ export default {
   ListUser,
   ListUsersById,
   ListOrder,
-  ListExchange
+  ListExchange,
+  UpdateOrderStatus
 };
