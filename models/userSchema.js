@@ -112,9 +112,13 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    isAdmin: {
+      type: Boolean,
+      default: false,
+    },
     personalDetails: {
       type: personalDetailsSchema,
-      required: true,
+      required: false,
     },
     orderHistory: [{
       type: mongoose.Schema.Types.ObjectId,

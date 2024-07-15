@@ -112,6 +112,16 @@ export const setCurrencyValue = async (req, res) => {
   }
 };
 
+export const ListUser = async (req,res) => {
+  try {
+    const Users = await  User.find({ isAdmin : false })
+    res.status(200).json({status :"successfully fetched users" , data : Users})
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ status: "error", message: "Server error" });
+  }
+}
+
 
 
 
@@ -121,7 +131,8 @@ export const setCurrencyValue = async (req, res) => {
 export default {
     sendAdminOtp,
     adminLogin,
-    setCurrencyValue
+    setCurrencyValue,
+    ListUser
   };
 
   

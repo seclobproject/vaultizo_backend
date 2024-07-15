@@ -524,7 +524,7 @@ export default {
   ChangePassword,
   AddPersonalDetails,
   EditPersonalDetails,
-  Listorders,
+  ListHistory,
 };
 
 //       const generateAccessToken = (user) => {
